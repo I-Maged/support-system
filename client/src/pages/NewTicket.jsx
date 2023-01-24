@@ -9,7 +9,7 @@ import Spinner from '../components/Spinner';
 const NewTicket = () => {
   const { user } = useSelector((state) => state.auth);
   const { isError, isSuccess, isLoading, message } = useSelector(
-    (state) => state.ticket
+    (state) => state.tickets
   );
 
   const [name] = useState(user.name);
