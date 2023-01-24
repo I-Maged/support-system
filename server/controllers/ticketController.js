@@ -105,30 +105,25 @@ const deleteTicket = asyncHandler(async (req, res) => {
 // @route   PUT /api/tickets/:id
 // @access  Private
 const updateTicket = asyncHandler(async (req, res) => {
-  const { product, description } = req.body;
+  const ticket = await Ticket.findById(req.params.id);
 
-  if (!product || !description) {
-    res.status(400);
-    throw new Error('Please include a product and description');
+  if (!ticket) {
+    res.status(404);
+    throw new Error('Ticket not found');
   }
 
-  const user = await User.findById(req.user.id);
-
-  if (!user) {
+  if (ticket.user.toString() !== req.user.id) {
     res.status(401);
-    throw new Error('You must login to create a ticket');
+    throw new Error('Not Authorized');
   }
 
-  const ticket = await Ticket.create({
-    user: req.user.id,
-    product,
-    description,
-    status: 'new',
-  });
+  const updatedTicket = await Ticket.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
 
-  const updatedTicket = await Ticket.findByIdAndUpdate(req.params.id, req.body);
-
-  res.status(201).json(updatedTicket);
+  res.status(200).json(updatedTicket);
 });
 
 module.exports = {
