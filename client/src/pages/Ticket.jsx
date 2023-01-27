@@ -2,7 +2,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getTicket, closeTicket } from '../features/tickets/ticketSlice';
-import { getNotes } from '../features/notes/noteSlice';
+import { getNotes, createNote } from '../features/notes/noteSlice';
 import { toast } from 'react-toastify';
 import Modal from 'react-modal';
 import { FaPlus } from 'react-icons/fa';
@@ -59,6 +59,8 @@ const Ticket = () => {
 
   const onNoteSubmit = (e) => {
     e.preventDefault();
+    dispatch(createNote({ noteText, ticketId }));
+    closeModal();
   };
 
   if (isLoading || notesIsLoading) {
