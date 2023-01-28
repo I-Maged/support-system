@@ -1,35 +1,20 @@
 const asyncHandler = require('express-async-handler');
 
-const User = require('../models/userModel');
 const Ticket = require('../models/ticketModel');
 
 // @desc    Get user tickets
 // @route   GET /api/tickets
 // @access  Private
 const getTickets = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id);
-
-  if (!user) {
-    res.status(401);
-    throw new Error('User not found');
-  }
-
   const tickets = await Ticket.find({ user: req.user.id });
 
   res.status(200).json(tickets);
 });
 
-// @desc    Get a single ticket
+// @desc    Get user ticket
 // @route   GET /api/tickets/:id
 // @access  Private
 const getTicket = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id);
-
-  if (!user) {
-    res.status(401);
-    throw new Error('User not found');
-  }
-
   const ticket = await Ticket.findById(req.params.id);
 
   if (!ticket) {
@@ -45,7 +30,7 @@ const getTicket = asyncHandler(async (req, res) => {
   res.status(200).json(ticket);
 });
 
-// @desc    create new ticket
+// @desc    Create new ticket
 // @route   POST /api/tickets
 // @access  Private
 const createTicket = asyncHandler(async (req, res) => {
@@ -53,37 +38,23 @@ const createTicket = asyncHandler(async (req, res) => {
 
   if (!product || !description) {
     res.status(400);
-    throw new Error('Please include a product and description');
-  }
-
-  const user = await User.findById(req.user.id);
-
-  if (!user) {
-    res.status(401);
-    throw new Error('You must login to create a ticket');
+    throw new Error('Please add a product and description');
   }
 
   const ticket = await Ticket.create({
-    user: req.user.id,
     product,
     description,
+    user: req.user.id,
     status: 'new',
   });
 
   res.status(201).json(ticket);
 });
 
-// @desc    Delete a single ticket
+// @desc    Delete ticket
 // @route   DELETE /api/tickets/:id
 // @access  Private
 const deleteTicket = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id);
-
-  if (!user) {
-    res.status(401);
-    throw new Error('User not found');
-  }
-
   const ticket = await Ticket.findById(req.params.id);
 
   if (!ticket) {
@@ -101,7 +72,7 @@ const deleteTicket = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true });
 });
 
-// @desc    update ticket
+// @desc    Update ticket
 // @route   PUT /api/tickets/:id
 // @access  Private
 const updateTicket = asyncHandler(async (req, res) => {
@@ -128,8 +99,8 @@ const updateTicket = asyncHandler(async (req, res) => {
 
 module.exports = {
   getTickets,
-  createTicket,
   getTicket,
+  createTicket,
   deleteTicket,
   updateTicket,
 };

@@ -10,12 +10,13 @@ const User = require('../models/userModel');
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
+  // Validation
   if (!name || !email || !password) {
     res.status(400);
     throw new Error('Please include all fields');
   }
 
-  //find if user already exists
+  // Find if user already exists
   const userExists = await User.findOne({ email });
 
   if (userExists) {
@@ -23,18 +24,17 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error('User already exists');
   }
 
-  //hash password
+  // hash password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  //create user
+  // create user
   const user = await User.create({
     name,
     email,
     password: hashedPassword,
   });
 
-  //if user is created
   if (user) {
     res.status(201).json({
       _id: user._id,
@@ -44,7 +44,7 @@ const registerUser = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(400);
-    throw new Error('Invalid user data');
+    throw new error('Invalid user data');
   }
 });
 
@@ -56,7 +56,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email });
 
-  if (user && bcrypt.compare(password, user.password)) {
+  // Check user and passwords match
+  if (user && (await bcrypt.compare(password, user.password))) {
     res.status(200).json({
       _id: user._id,
       name: user.name,
@@ -81,6 +82,7 @@ const getMe = asyncHandler(async (req, res) => {
   res.status(200).json(user);
 });
 
+// Generate token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: '30d',

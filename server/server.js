@@ -1,6 +1,6 @@
 const express = require('express');
-const dotenv = require('dotenv').config();
-const colors = require('colors');
+require('dotenv').config();
+require('colors');
 const PORT = process.env.PORT || 8080;
 const { errorHandler } = require('./middleware/errorMiddleware');
 const connectDB = require('./config/db');
@@ -12,8 +12,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.get('/', (req, res) => {
-  //   res.send('Hello');
+app.get('/', (_, res) => {
+  //   res.send('Welcome');
   res.status(200).json({ message: 'Welcome to the Support System API' });
 });
 
