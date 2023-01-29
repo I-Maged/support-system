@@ -1,14 +1,14 @@
-import { useSelector, useDispatch } from 'react-redux';
-import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getTicket, closeTicket } from '../features/tickets/ticketSlice';
-import { getNotes, createNote } from '../features/notes/noteSlice';
 import { toast } from 'react-toastify';
 import Modal from 'react-modal';
 import { FaPlus } from 'react-icons/fa';
+import { useSelector, useDispatch } from 'react-redux';
+import { getTicket, closeTicket } from '../features/tickets/ticketSlice';
+import { getNotes, createNote } from '../features/notes/noteSlice';
+import { useParams, useNavigate } from 'react-router-dom';
 import BackButton from '../components/BackButton';
-import NoteItem from '../components/NoteItem';
 import Spinner from '../components/Spinner';
+import NoteItem from '../components/NoteItem';
 
 const customStyles = {
   content: {
@@ -28,51 +28,50 @@ Modal.setAppElement('#root');
 const Ticket = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
+  const { ticket } = useSelector((state) => state.tickets);
 
-  const { notes, isLoading: notesIsLoading } = useSelector(
-    (state) => state.notes
-  );
-  const { ticket, isLoading, isError, message } = useSelector(
-    (state) => state.tickets
-  );
-  const dispatch = useDispatch();
+  const { notes } = useSelector((state) => state.notes);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { ticketId } = useParams();
 
   useEffect(() => {
-    if (isError) {
-      toast.error(message);
-    }
-
-    dispatch(getTicket(ticketId));
-    dispatch(getNotes(ticketId));
-  }, [isError, message, ticketId, dispatch]);
+    dispatch(getTicket(ticketId)).unwrap().catch(toast.error);
+    dispatch(getNotes(ticketId)).unwrap().catch(toast.error);
+  }, [ticketId, dispatch]);
 
   const onTicketClose = () => {
-    dispatch(closeTicket(ticketId));
-    toast.success('Ticket closed');
-    navigate('/tickets');
+    dispatch(closeTicket(ticketId))
+      .unwrap()
+      .then(() => {
+        toast.success('Ticket Closed');
+        navigate('/tickets');
+      })
+      .catch(toast.error);
+  };
+
+  const onNoteSubmit = (e) => {
+    e.preventDefault();
+    dispatch(createNote({ noteText, ticketId }))
+      .unwrap()
+      .then(() => {
+        setNoteText('');
+        closeModal();
+      })
+      .catch(toast.error);
   };
 
   const openModal = () => setModalIsOpen(true);
   const closeModal = () => setModalIsOpen(false);
 
-  const onNoteSubmit = (e) => {
-    e.preventDefault();
-    dispatch(createNote({ noteText, ticketId }));
-    closeModal();
-  };
-
-  if (isLoading || notesIsLoading) {
+  if (!ticket) {
     return <Spinner />;
   }
-  if (!ticket) {
-    return <h3>Something went wrong</h3>;
-  }
+
   return (
     <div className='ticket-page'>
       <header className='ticket-header'>
-        <BackButton url='/tickets' />
+        <BackButton />
         <h2>
           Ticket ID: {ticket._id}
           <span className={`status status-${ticket.status}`}>
@@ -80,7 +79,7 @@ const Ticket = () => {
           </span>
         </h2>
         <h3>
-          Date Submitted: {new Date(ticket.createdAt).toLocaleString('en-GB')}
+          Date Submitted: {new Date(ticket.createdAt).toLocaleString('en-US')}
         </h3>
         <h3>Product: {ticket.product}</h3>
         <hr />
@@ -90,6 +89,7 @@ const Ticket = () => {
         </div>
         <h2>Notes</h2>
       </header>
+
       {ticket.status !== 'closed' && (
         <button onClick={openModal} className='btn'>
           <FaPlus /> Add Note
@@ -130,6 +130,7 @@ const Ticket = () => {
       ) : (
         <Spinner />
       )}
+
       {ticket.status !== 'closed' && (
         <button onClick={onTicketClose} className='btn btn-block btn-danger'>
           Close Ticket

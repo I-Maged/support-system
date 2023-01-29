@@ -1,35 +1,26 @@
 import { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getTickets, reset } from '../features/tickets/ticketSlice';
-import TicketItem from '../components/TicketItem';
-import BackButton from '../components/BackButton';
+import { getTickets } from '../features/tickets/ticketSlice';
 import Spinner from '../components/Spinner';
+import BackButton from '../components/BackButton';
+import TicketItem from '../components/TicketItem';
 
 const Tickets = () => {
-  const { tickets, isSuccess, isLoading } = useSelector(
-    (state) => state.tickets
-  );
-  const dispatch = useDispatch();
+  const { tickets } = useSelector((state) => state.tickets);
 
-  useEffect(() => {
-    return () => {
-      if (isSuccess) {
-        dispatch(reset());
-      }
-    };
-  }, [dispatch, isSuccess]);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(getTickets());
   }, [dispatch]);
 
-  if (isLoading) {
+  if (!tickets) {
     return <Spinner />;
   }
 
   return (
     <>
-      <BackButton url='/' />
+      <BackButton />
       <h1>Tickets</h1>
       <div className='tickets'>
         <div className='ticket-headings'>

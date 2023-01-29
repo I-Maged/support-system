@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { FaSignInAlt } from 'react-icons/fa';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { login, reset } from '../features/auth/authSlice';
+import { FaSignInAlt } from 'react-icons/fa';
+import { useSelector, useDispatch } from 'react-redux';
+import { login } from '../features/auth/authSlice';
 import Spinner from '../components/Spinner';
 
 const Login = () => {
@@ -17,21 +17,7 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { user, isError, isSuccess, isLoading, message } = useSelector(
-    (state) => state.auth
-  );
-
-  useEffect(() => {
-    if (isError) {
-      toast.error(message);
-    }
-
-    if (isSuccess || user) {
-      navigate('/');
-    }
-
-    dispatch(reset());
-  }, [user, isError, isSuccess, message, navigate, dispatch]);
+  const { isLoading } = useSelector((state) => state.auth);
 
   const onChange = (e) => {
     setFormData((prevState) => ({
@@ -43,9 +29,18 @@ const Login = () => {
   const onSubmit = (e) => {
     e.preventDefault();
 
-    const userData = { email, password };
+    const userData = {
+      email,
+      password,
+    };
 
-    dispatch(login(userData));
+    dispatch(login(userData))
+      .unwrap()
+      .then((user) => {
+        toast.success(`Logged in as ${user.name}`);
+        navigate('/');
+      })
+      .catch(toast.error);
   };
 
   if (isLoading) {
@@ -60,6 +55,7 @@ const Login = () => {
         </h1>
         <p>Please log in to get support</p>
       </section>
+
       <section className='form'>
         <form onSubmit={onSubmit}>
           <div className='form-group'>

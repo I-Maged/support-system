@@ -16,7 +16,7 @@ const NoteItem = ({ note }) => {
       </h4>
       <p>{note.text}</p>
       <div className='note-date'>
-        {new Date(note.createdAt).toLocaleString('en-GB')}
+        {new Date(note.createdAt).toLocaleString('en-US')}
       </div>
     </div>
   );

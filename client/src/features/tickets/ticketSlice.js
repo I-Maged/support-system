@@ -1,13 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import ticketService from './ticketService';
+import { extractErrorMessage } from '../../utils';
 
 const initialState = {
-  tickets: [],
-  ticket: {},
-  isError: false,
-  isSuccess: false,
-  isLoading: false,
-  message: '',
+  tickets: null,
+  ticket: null,
 };
 
 export const createTicket = createAsyncThunk(
@@ -17,14 +14,7 @@ export const createTicket = createAsyncThunk(
       const token = thunkAPI.getState().auth.user.token;
       return await ticketService.createTicket(ticketData, token);
     } catch (error) {
-      const message =
-        (error.response &&
-          error.response.data &&
-          error.response.data.message) ||
-        error.message ||
-        error.toString();
-
-      return thunkAPI.rejectWithValue(message);
+      return thunkAPI.rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -36,14 +26,7 @@ export const getTickets = createAsyncThunk(
       const token = thunkAPI.getState().auth.user.token;
       return await ticketService.getTickets(token);
     } catch (error) {
-      const message =
-        (error.response &&
-          error.response.data &&
-          error.response.data.message) ||
-        error.message ||
-        error.toString();
-
-      return thunkAPI.rejectWithValue(message);
+      return thunkAPI.rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -55,14 +38,7 @@ export const getTicket = createAsyncThunk(
       const token = thunkAPI.getState().auth.user.token;
       return await ticketService.getTicket(ticketId, token);
     } catch (error) {
-      const message =
-        (error.response &&
-          error.response.data &&
-          error.response.data.message) ||
-        error.message ||
-        error.toString();
-
-      return thunkAPI.rejectWithValue(message);
+      return thunkAPI.rejectWithValue(extractErrorMessage(error));
     }
   }
 );
@@ -74,66 +50,26 @@ export const closeTicket = createAsyncThunk(
       const token = thunkAPI.getState().auth.user.token;
       return await ticketService.closeTicket(ticketId, token);
     } catch (error) {
-      const message =
-        (error.response &&
-          error.response.data &&
-          error.response.data.message) ||
-        error.message ||
-        error.toString();
-
-      return thunkAPI.rejectWithValue(message);
+      return thunkAPI.rejectWithValue(extractErrorMessage(error));
     }
   }
 );
 
 export const ticketSlice = createSlice({
-  name: 'tickets',
+  name: 'ticket',
   initialState,
-  reducers: {
-    reset: (state) => initialState,
-  },
   extraReducers: (builder) => {
     builder
-      .addCase(createTicket.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(createTicket.fulfilled, (state) => {
-        state.isSuccess = true;
-        state.isLoading = false;
-      })
-      .addCase(createTicket.rejected, (state, action) => {
-        state.isError = true;
-        state.message = action.payload;
-        state.isLoading = false;
-      })
       .addCase(getTickets.pending, (state) => {
-        state.isLoading = true;
+        state.ticket = null;
       })
       .addCase(getTickets.fulfilled, (state, action) => {
         state.tickets = action.payload;
-        state.isSuccess = true;
-        state.isLoading = false;
-      })
-      .addCase(getTickets.rejected, (state, action) => {
-        state.isError = true;
-        state.message = action.payload;
-        state.isLoading = false;
-      })
-      .addCase(getTicket.pending, (state) => {
-        state.isLoading = true;
       })
       .addCase(getTicket.fulfilled, (state, action) => {
         state.ticket = action.payload;
-        state.isSuccess = true;
-        state.isLoading = false;
-      })
-      .addCase(getTicket.rejected, (state, action) => {
-        state.isError = true;
-        state.message = action.payload;
-        state.isLoading = false;
       })
       .addCase(closeTicket.fulfilled, (state, action) => {
-        state.isSuccess = true;
         state.ticket = action.payload;
         state.tickets = state.tickets.map((ticket) =>
           ticket._id === action.payload._id ? action.payload : ticket
@@ -142,5 +78,4 @@ export const ticketSlice = createSlice({
   },
 });
 
-export const { reset } = ticketSlice.actions;
 export default ticketSlice.reducer;
